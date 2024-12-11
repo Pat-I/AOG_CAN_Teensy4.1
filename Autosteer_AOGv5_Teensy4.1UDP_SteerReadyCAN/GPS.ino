@@ -3,7 +3,7 @@
 char rxbuffer[512];         //Extra serial rx buffer
 char txbuffer[512];         //Extra serial tx buffer
 
-#define RadioRTK Serial7
+#define RadioRTK Serial3 // by Pat
 #define RadioBaudRate 115200
 char RTKrxbuffer[512];      //Extra serial rx buffer
 

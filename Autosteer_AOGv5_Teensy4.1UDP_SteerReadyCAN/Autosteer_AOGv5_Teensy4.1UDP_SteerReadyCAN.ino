@@ -8,15 +8,15 @@
 
 //----------------------------------------------------------
 
-//Tony / @Commonrail Version 18.02.2024
+//Tony / @Commonrail Version 18.02.2024 -changes for proto by Pat 10.12.2024
 
 // GPS forwarding mode: (Serial Bynav etc)
-// - GPS to Serial3, Forward to AgIO via UDP
-// - Forward Ntrip from AgIO (Port 2233) to Serial3
+// - GPS to Serial5, Forward to AgIO via UDP -from 3 to 5, by Pat
+// - Forward Ntrip from AgIO (Port 2233) to Serial5 -from 3 to 5, by Pat
 
 // Panda Mode 
-// - GPS to Serial3, Forward to AgIO as Panda via UDP
-// - Forward Ntrip from AgIO (Port 2233) to Serial3
+// - GPS to Serial5, Forward to AgIO as Panda via UDP -from 3 to 5, by Pat
+// - Forward Ntrip from AgIO (Port 2233) to Serial5 -from 3 to 5, by Pat
 // - BNO08x Data sent with Panda data
 
 //This CAN setup is for CANBUS based steering controllers as below:
@@ -45,7 +45,7 @@
 
 //----------------------------------------------------------
 
-String inoVersion = ("\r\nAgOpenGPS Tony UDP CANBUS Ver 04.05.2024");
+String inoVersion = ("\r\nAgOpenGPS Tony-Pat UDP CANBUS Ver 10.12.2024");
 
   ////////////////// User Settings /////////////////////////  
 
@@ -68,18 +68,18 @@ String inoVersion = ("\r\nAgOpenGPS Tony UDP CANBUS Ver 04.05.2024");
   //Connect ground only for cytron, Connect Ground and +5v for IBT2
     
   //Dir1 for Cytron Dir, Both L and R enable for IBT2
-  #define DIR1_RL_ENABLE  4  //PD4
+  #define DIR1_RL_ENABLE  6  //PD4
 
   //PWM1 for Cytron PWM, Left PWM for IBT2
-  #define PWM1_LPWM  3  //PD3
+  #define PWM1_LPWM  9  //PD3
 
   //Not Connected for Cytron, Right PWM for IBT2
-  #define PWM2_RPWM  9 //D9
+  #define PWM2_RPWM  4 //D9
 
   //--------------------------- Switch Input Pins ------------------------
-  #define STEERSW_PIN 6 //PD6
-  #define WORKSW_PIN 7  //PD7
-  #define REMOTE_PIN 8  //PB0
+  #define STEERSW_PIN 2 //PD6
+  #define WORKSW_PIN 41  //PD7
+  #define REMOTE_PIN 3  //PB0
 
   #define CONST_180_DIVIDED_BY_PI 57.2957795130823
   #define RAD_TO_DEG_X_10 572.95779513082320876798154814105
@@ -104,7 +104,7 @@ elapsedMillis tempChecker;
     struct ConfigIP {
         uint8_t ipOne = 192;
         uint8_t ipTwo = 168;
-        uint8_t ipThree = 1;
+        uint8_t ipThree = 5;
     };  ConfigIP networkAddress;   //3 bytes
   
   // Module IP Address / Port
@@ -136,11 +136,11 @@ FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_256> K_Bus;    //Tractor / Control Bus
 FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_256> ISO_Bus;  //ISO Bus
 FlexCAN_T4<CAN3, RX_SIZE_256, TX_SIZE_256> V_Bus;    //Steering Valve Bus
 
-#define ledPin 5        //Option for LED, CAN Valve Ready To Steer.
-#define engageLED 24    //Option for LED, to see if Engage message is recived.
+#define ledPin 36        //Option for LED, CAN Valve Ready To Steer. -piezo (unpluged)
+#define engageLED 37    //Option for LED, to see if Engage message is recived.-piezo (unpluged)
 
 uint8_t Brand = 1;              //Variable to set brand via serial monitor.
-uint8_t gpsMode = 1;            //Variable to set GPS mode via serial monitor.
+uint8_t gpsMode = 4;            //Variable to set GPS mode via serial monitor. -Panda 480000
 uint8_t CANBUS_ModuleID = 0x1C; //Used for the Module CAN ID
 
 bool reverse_MT = 0;
@@ -222,7 +222,7 @@ boolean intendToSteer = 0;        //Do We Intend to Steer?
   BNO_rvcData bnoData;
   elapsedMillis bnoTimer;
   bool bnoTrigger = false;
-  HardwareSerial* SerialIMU = &Serial5;   //IMU BNO-085
+  HardwareSerial* SerialIMU = &Serial6;   //IMU BNO-085 -changed by Pat
 
   // booleans to see what mode BNO08x
   bool useBNO08x = false;
@@ -358,7 +358,7 @@ boolean intendToSteer = 0;        //Do We Intend to Steer?
     pinMode(PWM2_RPWM, OUTPUT); 
     
     //set up communication
-    Wire.begin();
+    Wire2.begin();
     Serial.begin(115200);
 
     delay (2000);
@@ -379,8 +379,8 @@ boolean intendToSteer = 0;        //Do We Intend to Steer?
         
         Serial.print("\r\nChecking for BNO08X on ");
         Serial.println(bno08xAddress, HEX);
-        Wire.beginTransmission(bno08xAddress);
-        error = Wire.endTransmission();
+        Wire2.beginTransmission(bno08xAddress);
+        error = Wire2.endTransmission();
     
         if (error == 0)
         {
@@ -392,7 +392,7 @@ boolean intendToSteer = 0;        //Do We Intend to Steer?
           // Initialize BNO080 lib        
           if (bno08x.begin(bno08xAddress))
           {
-            Wire.setClock(400000); //Increase I2C data rate to 400kHz
+            Wire2.setClock(400000); //Increase I2C data rate to 400kHz
   
             delay(300);
 
